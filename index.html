@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 情侣相册</title>
+    <style>
+        /* ============================================
+           全局样式和CSS变量
+           ============================================ */
+        :root {
+            --primary-color: #ff6b9d;
+            --secondary-color: #ffa8c5;
+            --accent-color: #ffd4e5;
+            --text-color: #333;
+            --bg-color: #FFC0CB;
+            --card-bg: #fff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #FFC0CB, #FFE4E8, #FFD1DC);
+            min-height: 100vh;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        /* 背景装饰 */
+        .bg-decor {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .bg-decor span {
+            position: absolute;
+            display: block;
+            opacity: 0.18;
+            animation: bgFloat linear infinite;
+            filter: drop-shadow(0 0 4px currentColor);
+        }
+        @keyframes bgFloat {
+            0% { transform: translateY(110vh) rotate(0deg); }
+            100% { transform: translateY(-10vh) rotate(360deg); }
+        }
+
+        /* 渐变叠加层 */
+        .bg-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(255,182,193,0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255,192,203,0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(255,228,232,0.2) 0%, transparent 50%);
+        }
+
+        /* 导航栏下方装饰波浪 */
+        .header-wave {
+            position: fixed; top: 60px; left: 0; right: 0; height: 40px;
+            pointer-events: none; z-index: 999;
+            background: linear-gradient(to bottom, rgba(255,92,122,0.08), transparent);
+        }
+        .header-wave::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0; height: 20px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120'%3E%3Cpath d='M0,60 C200,120 400,0 600,60 C800,120 1000,0 1200,60 L1200,120 L0,120 Z' fill='rgba(255,92,122,0.06)'/%3E%3C/svg%3E") repeat-x;
+            background-size: 600px 20px;
+        }
+
+        /* 主内容区装饰线 */
+        main::before {
+            content: '';
+            position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            border-radius: 2px;
+        }
+
+        /* 特效样式 */
+        .trail-particle, .click-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .light-orb { display: none; }
+
+        /* 鼠标拖尾动画 */
+        @keyframes trailFade {
+            0% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0) translateY(-20px);
+                opacity: 0;
+            }
+        }
+
+        /* 点击涟漪动画 */
+        @keyframes clickRipple {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* 头部导航 */
+        header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: #ff5c7a;
+            padding: 15px 30px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+        }
+        .logo { font-size: 24px; font-weight: bold; color: #fff; }
+        .logo-heart {
+            display: inline-block;
+            color: #fff;
+            text-shadow: 0 0 6px rgba(255,255,255,0.8), 0 0 12px rgba(255,255,255,0.4);
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+            animation: heartPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes heartPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        nav { display: flex; gap: 15px; align-items: center; }
+        .nav-btn, .mode-btn {
+            background: rgba(255,255,255,0.2); border: none; color: #fff;
+            padding: 10px 20px; border-radius: 25px; cursor: pointer;
+            transition: all 0.3s ease; font-size: 14px;
+        }
+        .nav-btn:hover, .mode-btn:hover { background: rgba(255,255,255,0.35); }
+        .nav-btn.active, .mode-btn.active { background: #fff; color: #ff5c7a; }
+
+        /* 主内容区 */
+        main { margin-top: 80px; padding: 30px; position: relative; z-index: 2; }
+
+        /* 相册选择器 */
+        .album-selector { display: flex; gap: 15px; margin-bottom: 30px; flex-wrap: wrap; justify-content: center; }
+
+        .album-btn {
+            background: #fff; border: 2px solid #f0d0d8;
+            color: #666; padding: 12px 25px; border-radius: 30px; cursor: pointer;
+            transition: all 0.3s ease; font-size: 16px;
+            box-shadow: 0 2px 8px rgba(255,107,157,0.08);
+        }
+        .album-btn:hover { background: #fff5f7; transform: scale(1.05); border-color: var(--primary-color); }
+        .album-btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(255,107,157,0.3);
+        }
+
+        /* 瀑布流布局 */
+        .gallery-container { column-count: 4; column-gap: 20px; max-width: 1600px; margin: 0 auto; position: relative; z-index: 10; }
+        @media (max-width: 1400px) { .gallery-container { column-count: 3; } }
+        @media (max-width: 1000px) { .gallery-container { column-count: 2; } }
+        @media (max-width: 600px) { .gallery-container { column-count: 1; } }
+
+        .gallery-item {
+            break-inside: avoid; margin-bottom: 20px; position: relative;
+            border-radius: 12px; overflow: hidden; cursor: pointer;
+            transition: all 0.4s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.6s ease backwards;
+            background: #fff;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .gallery-item::before {
+            content: '';
+            position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,168,197,0.1), rgba(255,107,157,0.3));
+            border-radius: 14px; z-index: -1;
+            opacity: 0; transition: opacity 0.4s ease;
+        }
+        .gallery-item:hover::before { opacity: 1; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .gallery-item:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .gallery-item img, .gallery-item video { width: 100%; display: block; }
+        .lazy-placeholder {
+            width: 100%; min-height: 200px;
+            display: flex; align-items: center; justify-content: center;
+            background: #eee; font-size: 40px; color: #ccc;
+        }
+        .gallery-item .overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            padding: 20px; transform: translateY(100%); transition: transform 0.4s ease;
+        }
+        .gallery-item:hover .overlay { transform: translateY(0); }
+        .gallery-item .caption { color: #fff; font-size: 14px; margin-bottom: 5px; }
+        .gallery-item .date { color: rgba(255,255,255,0.8); font-size: 12px; }
+        .favorite-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: #fff; border: none; width: 36px; height: 36px;
+            border-radius: 50%; cursor: pointer; font-size: 18px;
+            transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .favorite-btn:hover { transform: scale(1.15); }
+        .favorite-btn.favorited { background: var(--primary-color); }
+
+        /* 加载更多按钮 */
+        .load-more-container {
+            text-align: center; padding: 40px; column-span: all;
+        }
+        .load-more-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none; color: white; padding: 15px 40px; border-radius: 30px;
+            cursor: pointer; font-size: 16px; transition: all 0.3s ease;
+            box-shadow: 0 5px 25px rgba(255, 107, 157, 0.5);
+        }
+        .load-more-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 35px rgba(255, 107, 157, 0.7); }
+        .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* 管理面板 */
+        .admin-panel {
+            display: none; position: fixed; top: 80px; right: 20px; width: 350px;
+            background: #fff; border-radius: 16px; padding: 25px; z-index: 999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12); max-height: calc(100vh - 120px); overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        .admin-panel.active { display: block; }
+        .admin-panel.collapsed {
+            width: 56px; height: 56px; padding: 0; border-radius: 50%; overflow: hidden;
+            display: flex !important; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .admin-panel.collapsed > *:not(.admin-collapse-btn) { display: none; }
+        .admin-collapse-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: #f0f0f0; border: none; width: 36px; height: 36px; border-radius: 50%;
+            cursor: pointer; font-size: 18px; color: #555; transition: all 0.3s ease; z-index: 1000;
+        }
+        .admin-panel.collapsed .admin-collapse-btn {
+            position: static; width: 100%; height: 100%; border-radius: 50%; font-size: 24px;
+        }
+        .admin-panel h3 { margin-bottom: 20px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; }
+        .admin-section { margin-bottom: 25px; }
+        .admin-section h4 { margin-bottom: 15px; color: #555; }
+        .upload-area {
+            border: 3px dashed #ddd; border-radius: 12px;
+            padding: 40px 20px; text-align: center; cursor: pointer;
+            transition: all 0.3s ease; background: #fafafa;
+        }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--primary-color); background: #fff0f5; }
+        .upload-area p { margin-top: 10px; color: #888; font-size: 14px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;
+            background: #fff; color: #333; font-size: 14px;
+        }
+        .btn {
+            background: var(--primary-color); border: none; color: #fff;
+            padding: 12px 25px; border-radius: 25px; cursor: pointer;
+            font-size: 14px; transition: all 0.3s ease; width: 100%;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-danger { background: #e74c3c; }
+
+        /* 灯箱 */
+        .lightbox {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); z-index: 10000;
+            justify-content: center; align-items: center;
+        }
+        .lightbox.active { display: flex; }
+        .lightbox-content { max-width: 90%; max-height: 90%; position: relative; }
+        .lightbox-content img, .lightbox-content video { max-width: 100%; max-height: 90vh; border-radius: 10px; }
+        .lightbox-close, .lightbox-nav {
+            position: absolute; background: rgba(255,255,255,0.9); border: none;
+            color: #333; border-radius: 50%; cursor: pointer; transition: all 0.3s ease;
+        }
+        .lightbox-close { top: 20px; right: 20px; width: 50px; height: 50px; font-size: 30px; }
+        .lightbox-nav { top: 50%; transform: translateY(-50%); width: 60px; height: 60px; font-size: 30px; }
+        .lightbox-prev { left: 20px; }
+        .lightbox-next { right: 20px; }
+        .lightbox-close:hover, .lightbox-nav:hover { background: var(--primary-color); color: #fff; }
+
+        /* 音乐播放器 */
+        .music-player { position: fixed; bottom: 30px; right: 30px; z-index: 999; transition: all 0.3s ease; }
+        .music-player-collapsed {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--primary-color); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(255,107,157,0.4); font-size: 24px;
+        }
+        .music-player-collapsed:hover { transform: scale(1.1); }
+        .music-player-expanded {
+            display: none; width: 340px; background: #fff; border-radius: 16px;
+            overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+        }
+        .music-player.expanded .music-player-expanded { display: block; }
+        .music-player.expanded .music-player-collapsed { display: none; }
+        .music-header {
+            background: var(--primary-color); padding: 15px 20px;
+            display: flex; align-items: center; justify-content: space-between; color: #fff;
+        }
+        .music-header-title { font-size: 16px; font-weight: bold; }
+        .music-header-btns button {
+            background: rgba(255,255,255,0.25); border: none; color: #fff;
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 14px; margin-left: 5px;
+        }
+        .music-header-btns button:hover { background: rgba(255,255,255,0.4); }
+        .music-now-playing { padding: 15px 20px; text-align: center; border-bottom: 1px solid #eee; }
+        .music-song-name { font-size: 15px; font-weight: bold; margin-bottom: 5px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .music-song-index { font-size: 12px; color: #999; }
+        .music-progress { padding: 10px 20px; }
+        .music-progress-bar { width: 100%; height: 4px; background: #eee; border-radius: 2px; cursor: pointer; }
+        .music-progress-fill { height: 100%; background: var(--primary-color); border-radius: 2px; width: 0%; transition: width 0.1s linear; position: relative; }
+        .music-progress-fill::after {
+            content: ''; position: absolute; right: -6px; top: -4px;
+            width: 12px; height: 12px; background: var(--primary-color); border-radius: 50%;
+        }
+        .music-time { display: flex; justify-content: space-between; font-size: 11px; color: #999; margin-top: 5px; }
+        .music-controls { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 10px 20px; }
+        .music-ctrl-btn { background: none; border: none; color: #999; cursor: pointer; font-size: 20px; padding: 5px; }
+        .music-ctrl-btn:hover { color: var(--primary-color); transform: scale(1.15); }
+        .music-play-btn {
+            background: var(--primary-color); border: none; width: 50px; height: 50px; border-radius: 50%;
+            cursor: pointer; font-size: 22px; color: #fff; box-shadow: 0 4px 15px rgba(255,107,157,0.4);
+        }
+        .music-play-btn:hover { transform: scale(1.1); }
+        .music-volume { display: flex; align-items: center; gap: 10px; padding: 5px 20px 10px; }
+        .music-volume-icon { font-size: 16px; cursor: pointer; }
+        .music-volume-bar { flex: 1; height: 4px; background: #eee; border-radius: 2px; cursor: pointer; }
+        .music-volume-fill { height: 100%; background: var(--primary-color); border-radius: 2px; width: 80%; }
+        .music-playlist { max-height: 250px; overflow-y: auto; border-top: 1px solid #eee; }
+        .music-playlist::-webkit-scrollbar { width: 4px; }
+        .music-playlist::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+        .music-playlist-item {
+            display: flex; align-items: center; padding: 10px 20px;
+            cursor: pointer; transition: background 0.2s ease; border-bottom: 1px solid #f5f5f5;
+        }
+        .music-playlist-item:hover { background: #fafafa; }
+        .music-playlist-item.active { background: #fff0f5; }
+        .music-playlist-item .song-num { width: 25px; font-size: 12px; color: #bbb; }
+        .music-playlist-item.active .song-num { color: var(--primary-color); }
+        .music-playlist-item .song-name { flex: 1; font-size: 13px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .music-playlist-item .song-delete {
+            background: none; border: none; color: #ccc; cursor: pointer; font-size: 14px; padding: 2px 5px;
+            opacity: 0; transition: opacity 0.2s;
+        }
+        .music-playlist-item:hover .song-delete { opacity: 1; }
+        .music-playlist-item .song-delete:hover { color: #e74c3c; }
+
+        /* 空状态 */
+        .empty-state { text-align: center; padding: 100px 20px; color: #999; }
+        .empty-state-icon { font-size: 80px; margin-bottom: 20px; opacity: 0.5; }
+
+        /* 加载状态 */
+        .loading-state { text-align: center; padding: 40px; color: #999; column-span: all; }
+        .loading-spinner {
+            width: 40px; height: 40px; margin: 0 auto 15px;
+            border: 4px solid #eee; border-top-color: var(--primary-color);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 15px; padding: 15px; }
+            main { margin-top: 120px; padding: 15px; }
+            .admin-panel { width: calc(100% - 40px); right: 20px; }
+        }
+
+        /* 编辑弹窗 */
+        .edit-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 10001;
+            justify-content: center; align-items: center;
+        }
+        .edit-modal.active { display: flex; }
+        .edit-content {
+            background: #fff; border-radius: 16px; padding: 30px;
+            width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .edit-content h3 { color: var(--primary-color); margin-bottom: 20px; }
+
+        /* Toast 提示条 */
+        .toast-container {
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            z-index: 99999; display: flex; flex-direction: column; gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: #fff; color: #333; padding: 12px 24px;
+            border-radius: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            font-size: 14px; animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+            pointer-events: auto;
+        }
+        .toast.success { border-left: 4px solid #4caf50; }
+        .toast.error { border-left: 4px solid #e74c3c; }
+        .toast.info { border-left: 4px solid #2196f3; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* 自定义确认框 */
+        .confirm-dialog {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3); z-index: 100000;
+            justify-content: center; align-items: center;
+        }
+        .confirm-dialog.active { display: flex; }
+        .confirm-box {
+            background: #fff; border-radius: 16px; padding: 25px 30px;
+            min-width: 300px; max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+            animation: toastIn 0.25s ease;
+        }
+        .confirm-box p {
+            font-size: 15px; color: #333; margin-bottom: 20px; line-height: 1.5;
+        }
+        .confirm-btns { display: flex; gap: 12px; justify-content: center; }
+        .confirm-btns button {
+            padding: 8px 28px; border-radius: 20px; border: none;
+            font-size: 14px; cursor: pointer; transition: all 0.2s ease;
+        }
+        .confirm-btn-ok {
+            background: var(--primary-color); color: #fff;
+        }
+        .confirm-btn-ok:hover { opacity: 0.85; }
+        .confirm-btn-cancel {
+            background: #f0f0f0; color: #666;
+        }
+        .confirm-btn-cancel:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-overlay"></div>
+    <div class="header-wave"></div>
+    <div class="bg-decor" id="bgDecor"></div>
+    <!-- Toast 提示容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+    <!-- 自定义确认框 -->
+    <div class="confirm-dialog" id="confirmDialog">
+        <div class="confirm-box">
+            <p id="confirmMessage"></p>
+            <div class="confirm-btns">
+                <button class="confirm-btn-ok" id="confirmOk">确定</button>
+                <button class="confirm-btn-cancel" id="confirmCancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头部导航 -->
+    <header>
+        <div class="logo"><span class="logo-heart">💕</span> <span class="logo-name" id="logoName">情侣相册</span></div>
+        <nav>
+            <button class="nav-btn active" data-view="all">全部照片</button>
+            <button class="nav-btn" data-view="favorites">❤️ 收藏</button>
+            <button class="nav-btn" data-view="timeline">📅 时间线</button>
+            <button class="mode-btn" id="modeToggle">🔧 管理</button>
+        </nav>
+    </header>
+
+    <!-- 主内容 -->
+    <main>
+        <div class="album-selector" id="albumSelector"></div>
+        <div class="gallery-container" id="gallery"></div>
+        <div class="load-more-container" id="loadMoreContainer" style="display:none;">
+            <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">加载更多</button>
+        </div>
+    </main>
+
+    <!-- 管理面板 -->
+    <div class="admin-panel" id="adminPanel">
+        <button class="admin-collapse-btn" onclick="toggleAdminCollapse(event)" title="收起/展开">✕</button>
+        <h3>🔧 管理面板</h3>
+
+        <div class="admin-section">
+            <h4>✏️ 修改名称</h4>
+            <div class="form-group">
+                <label>应用名称</label>
+                <input type="text" id="appNameInput" placeholder="输入新的名称">
+            </div>
+            <button class="btn" onclick="renameApp()">保存名称</button>
+        </div>
+
+        <div class="admin-section">
+            <h4>📷 上传照片</h4>
+            <div class="form-group">
+                <label>选择相册</label>
+                <select id="uploadAlbum"></select>
+            </div>
+            <div class="upload-area" id="photoUploadArea">
+                <p>📁 点击选择照片/视频</p>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h4>🎵 上传音乐</h4>
+            <div class="upload-area" id="musicUploadArea">
+                <p>🎵 点击选择音乐</p>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h4>📁 创建相册</h4>
+            <div class="form-group">
+                <label>相册名称</label>
+                <input type="text" id="newAlbumName" placeholder="输入相册名称">
+            </div>
+            <div class="form-group">
+                <label>相册描述</label>
+                <textarea id="newAlbumDesc" rows="2" placeholder="输入相册描述（可选）"></textarea>
+            </div>
+            <button class="btn" onclick="createAlbum()">创建相册</button>
+        </div>
+
+        <div class="admin-section">
+            <h4>🔄 扫描同步</h4>
+            <p style="font-size:13px;color:#888;margin-bottom:10px;">手动放入 storage 文件夹的音乐/图片/视频，点击同步后即可识别</p>
+            <button class="btn" onclick="syncFiles()">开始扫描</button>
+        </div>
+    </div>
+
+    <!-- 灯箱 -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">×</button>
+        <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">‹</button>
+        <div class="lightbox-content" id="lightboxContent"></div>
+        <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">›</button>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div class="edit-modal" id="editModal">
+        <div class="edit-content">
+            <h3>📝 编辑照片信息</h3>
+            <div class="form-group">
+                <label>描述</label>
+                <textarea id="editDescription" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label>标签（用逗号分隔）</label>
+                <input type="text" id="editTags" placeholder="旅行, 景点, 美食">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="savePhotoEdit()">保存</button>
+                <button class="btn btn-danger" onclick="closeEditModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 音乐播放器 -->
+    <div class="music-player" id="musicPlayer">
+        <!-- 折叠状态 -->
+        <div class="music-player-collapsed" id="musicCollapsed" onclick="expandMusicPlayer()">🎵</div>
+        <!-- 展开状态 -->
+        <div class="music-player-expanded">
+            <div class="music-header">
+                <span class="music-header-title">🎵 音乐</span>
+                <div class="music-header-btns">
+                    <button onclick="toggleMusicLoopMode()" id="loopModeBtn" title="播放模式">🔁</button>
+                    <button onclick="collapseMusicPlayer()" title="收起">−</button>
+                </div>
+            </div>
+            <div class="music-now-playing">
+                <div class="music-song-name" id="musicSongName">暂无音乐</div>
+                <div class="music-song-index" id="musicSongIndex"></div>
+            </div>
+            <div class="music-progress">
+                <div class="music-progress-bar" id="musicProgressBar" onclick="seekMusic(event)">
+                    <div class="music-progress-fill" id="musicProgressFill"></div>
+                </div>
+                <div class="music-time">
+                    <span id="musicCurrentTime">0:00</span>
+                    <span id="musicDuration">0:00</span>
+                </div>
+            </div>
+            <div class="music-controls">
+                <button class="music-ctrl-btn" onclick="prevMusic()" title="上一首">⏮</button>
+                <button class="music-play-btn" id="musicPlayBtn" onclick="toggleMusic()">🎵</button>
+                <button class="music-ctrl-btn" onclick="nextMusic()" title="下一首">⏭</button>
+            </div>
+            <div class="music-volume">
+                <span class="music-volume-icon" onclick="toggleMute()">🔊</span>
+                <div class="music-volume-bar" id="musicVolumeBar" onclick="setVolume(event)">
+                    <div class="music-volume-fill" id="musicVolumeFill"></div>
+                </div>
+            </div>
+            <div class="music-playlist" id="musicPlaylist"></div>
+        </div>
+        <audio id="audioPlayer"></audio>
+    </div>
+
+    <script>
+        // 全局变量
+        let allPhotos = [];
+        let allAlbums = [];
+        let allMusic = [];
+        let currentAlbum = 'all';
+        let currentView = 'all';
+        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        let currentLightboxIndex = 0;
+        let musicFiles = [];
+        let currentMusicIndex = 0;
+        let musicLoopMode = 'sequence'; // sequence, shuffle, single
+        let isMusicPlaying = false;
+        let isAdminMode = false;
+        let editingPhoto = null;
+
+        // ===== 性能优化：分页和懒加载 =====
+        const PAGE_SIZE = 50;
+        let displayedCount = 0;
+        let filteredPhotos = [];
+        let lazyObserver = null;
+
+        // Toast 提示
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + type;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        // 自定义确认框（返回 Promise）
+        function showConfirm(message) {
+            return new Promise((resolve) => {
+                const dialog = document.getElementById('confirmDialog');
+                const msgEl = document.getElementById('confirmMessage');
+                const okBtn = document.getElementById('confirmOk');
+                const cancelBtn = document.getElementById('confirmCancel');
+
+                msgEl.textContent = message;
+                dialog.classList.add('active');
+
+                function cleanup() {
+                    dialog.classList.remove('active');
+                    okBtn.onclick = null;
+                    cancelBtn.onclick = null;
+                }
+
+                okBtn.onclick = () => { cleanup(); resolve(true); };
+                cancelBtn.onclick = () => { cleanup(); resolve(false); };
+            });
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            setupLazyObserver();
+            setupEventListeners();
+            loadData();
+            // 延迟启动特效，减少初始负载
+            setTimeout(startEffects, 2000);
+        });
+
+        // 懒加载观察器
+        function setupLazyObserver() {
+            lazyObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const item = entry.target;
+                        const mediaSrc = item.dataset.src;
+                        const mediaType = item.dataset.type;
+
+                        if (mediaSrc && !item.dataset.loaded) {
+                            if (mediaType === 'video') {
+                                const video = document.createElement('video');
+                                video.src = mediaSrc;
+                                video.muted = true;
+                                video.preload = 'none';
+                                video.poster = item.dataset.poster || '';
+                                item.innerHTML = video.outerHTML;
+                            } else {
+                                const img = document.createElement('img');
+                                img.src = mediaSrc;
+                                img.alt = item.dataset.alt || '';
+                                img.loading = 'lazy';
+                                item.innerHTML = img.outerHTML;
+                            }
+                            item.dataset.loaded = 'true';
+                        }
+                        lazyObserver.unobserve(item);
+                    }
+                });
+            }, {
+                rootMargin: '200px 0px',
+                threshold: 0.01
+            });
+        }
+
+        // 延迟启动特效
+        function startEffects() {
+            // 背景浮动装饰
+            initBgDecor();
+            // 只保留鼠标拖尾
+            document.addEventListener('mousemove', createMouseTrail);
+            // 点击特效
+            document.addEventListener('click', createClickEffect);
+        }
+
+        // 背景浮动装饰
+        function initBgDecor() {
+            const container = document.getElementById('bgDecor');
+            const symbols = ['🌸', '💗', '✨', '🌷', '💫', '🌹', '🦋', '🌺'];
+            const count = 18;
+            for (let i = 0; i < count; i++) {
+                const span = document.createElement('span');
+                span.textContent = symbols[i % symbols.length];
+                const size = Math.random() * 20 + 16;
+                span.style.fontSize = size + 'px';
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDuration = (Math.random() * 20 + 20) + 's';
+                span.style.animationDelay = -(Math.random() * 30) + 's';
+                container.appendChild(span);
+            }
+        }
+
+        // 鼠标拖尾特效
+        function createMouseTrail(e) {
+            if (Math.random() > 0.15) return;
+            const trail = document.createElement('div');
+            trail.className = 'trail-particle';
+            const trails = ['✨', '💖', '🌸', '⭐'];
+            trail.innerHTML = trails[Math.floor(Math.random() * trails.length)];
+            trail.style.left = e.clientX + 'px';
+            trail.style.top = e.clientY + 'px';
+            trail.style.fontSize = (Math.random() * 12 + 10) + 'px';
+            trail.style.animation = 'trailFade 1s ease-out forwards';
+            document.body.appendChild(trail);
+            setTimeout(() => trail.remove(), 1000);
+        }
+
+        // 点击特效
+        function createClickEffect(e) {
+            // 创建中心爱心
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.style.left = e.clientX + 'px';
+            effect.style.top = e.clientY + 'px';
+            effect.innerHTML = '💗';
+            effect.style.fontSize = '30px';
+            effect.style.animation = 'clickRipple 0.6s ease-out forwards';
+            document.body.appendChild(effect);
+            setTimeout(() => effect.remove(), 600);
+
+            // 创建扩散粒子
+            for (let i = 0; i < 6; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'click-effect';
+                    const particles = ['🌸', '✨', '💕', '⭐'];
+                    particle.innerHTML = particles[Math.floor(Math.random() * particles.length)];
+                    const angle = (i / 6) * Math.PI * 2;
+                    const distance = 50;
+                    particle.style.left = (e.clientX + Math.cos(angle) * distance) + 'px';
+                    particle.style.top = (e.clientY + Math.sin(angle) * distance) + 'px';
+                    particle.style.fontSize = '16px';
+                    particle.style.animation = 'trailFade 0.8s ease-out forwards';
+                    document.body.appendChild(particle);
+                    setTimeout(() => particle.remove(), 800);
+                }, i * 50);
+            }
+        }
+
+        // 设置事件监听
+        function setupEventListeners() {
+            // 导航按钮
+            document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentView = e.target.dataset.view;
+                    resetAndRender();
+                });
+            });
+
+            // 模式切换
+            document.getElementById('modeToggle').addEventListener('click', toggleAdminMode);
+
+            // 音乐播放器事件
+            setupMusicEvents();
+
+            // 上传区域（使用 pywebview 本地文件对话框）
+            document.getElementById('photoUploadArea').addEventListener('click', selectAndUploadPhotos);
+            document.getElementById('musicUploadArea').addEventListener('click', selectAndUploadMusic);
+
+            // 键盘事件
+            document.addEventListener('keydown', (e) => {
+                if (document.getElementById('lightbox').classList.contains('active')) {
+                    if (e.key === 'Escape') closeLightbox();
+                    if (e.key === 'ArrowLeft') navigateLightbox(-1);
+                    if (e.key === 'ArrowRight') navigateLightbox(1);
+                }
+            });
+
+            // 滚动加载
+            window.addEventListener('scroll', checkScrollLoad);
+        }
+
+        function checkScrollLoad() {
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            if (loadMoreContainer.style.display === 'none') return;
+
+            const rect = loadMoreContainer.getBoundingClientRect();
+            if (rect.top < window.innerHeight + 200) {
+                loadMore();
+            }
+        }
+
+        // 选择并上传照片（Python 弹出原生文件对话框，直接复制到 storage）
+        async function selectAndUploadPhotos() {
+            const album = document.getElementById('uploadAlbum').value;
+            if (!album) { showToast('请先选择相册'); return; }
+
+            if (window.pywebview && window.pywebview.api) {
+                try {
+                    showToast('正在选择文件...', 'info');
+                    const result = await window.pywebview.api.upload_photos(album);
+                    if (result.success) {
+                        showToast(`成功导入 ${result.uploaded} 个文件`, 'success');
+                        loadData();
+                    } else if (result.error && result.error !== '未选择文件') {
+                        showToast('导入失败: ' + result.error, 'error');
+                    }
+                } catch (error) {
+                    showToast('导入失败: ' + error, 'error');
+                }
+            } else {
+                showToast('仅在桌面应用中支持此功能', 'error');
+            }
+        }
+
+        // 选择并上传音乐（Python 弹出原生文件对话框，直接复制到 storage）
+        async function selectAndUploadMusic() {
+            if (window.pywebview && window.pywebview.api) {
+                try {
+                    showToast('正在选择文件...', 'info');
+                    const result = await window.pywebview.api.upload_music();
+                    if (result.success) {
+                        showToast(`成功导入 ${result.uploaded} 个音乐文件`, 'success');
+                        loadData();
+                    } else if (result.error && result.error !== '未选择文件') {
+                        showToast('导入失败: ' + result.error, 'error');
+                    }
+                } catch (error) {
+                    showToast('导入失败: ' + error, 'error');
+                }
+            } else {
+                showToast('仅在桌面应用中支持此功能', 'error');
+            }
+        }
+
+        // 扫描同步 - 扫描 storage 文件夹，把手动加入的新文件登记到 metadata
+        async function syncFiles() {
+            if (window.pywebview && window.pywebview.api) {
+                try {
+                    showToast('正在扫描...', 'info');
+                    const result = await window.pywebview.api.sync_files();
+                    if (result.success) {
+                        const addParts = [];
+                        const delParts = [];
+                        if (result.newAlbums > 0) addParts.push(`${result.newAlbums} 个相册`);
+                        if (result.newMusic > 0) addParts.push(`${result.newMusic} 个音乐`);
+                        if (result.newPhotos > 0) addParts.push(`${result.newPhotos} 张图片`);
+                        if (result.newVideos > 0) addParts.push(`${result.newVideos} 个视频`);
+                        if (result.deletedAlbums > 0) delParts.push(`${result.deletedAlbums} 个相册`);
+                        if (result.deletedMusic > 0) delParts.push(`${result.deletedMusic} 个音乐`);
+                        if (result.deletedPhotos > 0) delParts.push(`${result.deletedPhotos} 张图片`);
+                        if (result.deletedVideos > 0) delParts.push(`${result.deletedVideos} 个视频`);
+
+                        if (addParts.length === 0 && delParts.length === 0) {
+                            showToast('没有变化', 'info');
+                        } else {
+                            const msgs = [];
+                            if (addParts.length > 0) msgs.push('新增：' + addParts.join('、'));
+                            if (delParts.length > 0) msgs.push('删除：' + delParts.join('、'));
+                            showToast(msgs.join('  |  '), 'success');
+                            loadData();
+                        }
+                    } else {
+                        showToast('同步失败: ' + result.error, 'error');
+                    }
+                } catch (error) {
+                    showToast('同步失败: ' + error, 'error');
+                }
+            } else {
+                showToast('仅在桌面应用中支持此功能', 'error');
+            }
+        }
+
+        // 加载数据
+        async function loadData() {
+            try {
+                const [albumsRes, photosRes, musicRes, statusRes] = await Promise.all([
+                    fetch('/api/albums'),
+                    fetch('/api/photos'),
+                    fetch('/api/music'),
+                    fetch('/api/status')
+                ]);
+
+                allAlbums = await albumsRes.json();
+                allPhotos = await photosRes.json();
+                allMusic = await musicRes.json();
+                const status = await statusRes.json();
+
+                // 应用名称
+                applyAppName(status.appName || '情侣相册');
+
+                renderAlbumSelector();
+                resetAndRender();
+                updateUploadAlbumSelect();
+
+                if (allMusic.length > 0) {
+                    musicFiles = allMusic;
+                    updateMusicInfo();
+                }
+            } catch (error) {
+                console.error('加载数据失败:', error);
+            }
+        }
+
+        // 重置并渲染
+        function resetAndRender() {
+            displayedCount = 0;
+            document.getElementById('gallery').innerHTML = '';
+            filterPhotos();
+            renderBatch();
+        }
+
+        // 过滤照片
+        function filterPhotos() {
+            filteredPhotos = [...allPhotos];
+
+            if (currentAlbum !== 'all') {
+                filteredPhotos = filteredPhotos.filter(p => p.album === currentAlbum);
+            }
+
+            if (currentView === 'favorites') {
+                filteredPhotos = filteredPhotos.filter(p => favorites.includes(p.id));
+            } else if (currentView === 'timeline') {
+                filteredPhotos.sort((a, b) => new Date(b.date) - new Date(a.date));
+            }
+        }
+
+        // 渲染一批照片
+        function renderBatch() {
+            const gallery = document.getElementById('gallery');
+            const loadMoreContainer = document.getElementById('loadMoreContainer');
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+            if (filteredPhotos.length === 0) {
+                gallery.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📷</div>
+                        <h2>还没有照片</h2>
+                        <p>${isAdminMode ? '请上传照片' : '切换到管理模式上传照片'}</p>
+                    </div>
+                `;
+                loadMoreContainer.style.display = 'none';
+                return;
+            }
+
+            const start = displayedCount;
+            const end = Math.min(start + PAGE_SIZE, filteredPhotos.length);
+            const batch = filteredPhotos.slice(start, end);
+
+            const fragment = document.createDocumentFragment();
+
+            batch.forEach((photo, batchIndex) => {
+                const globalIndex = start + batchIndex;
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.style.animationDelay = (batchIndex * 0.05) + 's';
+
+                const mediaWrapper = document.createElement('div');
+                mediaWrapper.className = 'lazy-placeholder';
+                // 确保路径有前导斜杠并正确编码中文
+                let srcPath = photo.path;
+                if (!srcPath.startsWith('/')) srcPath = '/' + srcPath;
+                mediaWrapper.dataset.src = encodeURI(srcPath);
+                mediaWrapper.dataset.type = photo.type;
+                mediaWrapper.dataset.alt = photo.description || '';
+                // 视频缩略图
+                if (photo.thumbnail) {
+                    let thumbPath = photo.thumbnail;
+                    if (!thumbPath.startsWith('/')) thumbPath = '/' + thumbPath;
+                    mediaWrapper.dataset.poster = encodeURI(thumbPath);
+                }
+                mediaWrapper.innerHTML = photo.type === 'video' ? '🎬' : '🖼️';
+
+                item.appendChild(mediaWrapper);
+
+                // 收藏按钮
+                const favBtn = document.createElement('button');
+                favBtn.className = 'favorite-btn' + (favorites.includes(photo.id) ? ' favorited' : '');
+                favBtn.innerHTML = favorites.includes(photo.id) ? '❤️' : '🤍';
+                favBtn.onclick = (e) => toggleFavorite(e, photo.id, photo.album);
+                item.appendChild(favBtn);
+
+                // 管理模式按钮
+                if (isAdminMode) {
+                    const editBtn = document.createElement('button');
+                    editBtn.style.cssText = 'position:absolute;top:15px;left:15px;background:#fff;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,0.15);';
+                    editBtn.innerHTML = '✏️';
+                    editBtn.onclick = () => editPhoto(photo.album, photo.id);
+                    item.appendChild(editBtn);
+
+                    const delBtn = document.createElement('button');
+                    delBtn.style.cssText = 'position:absolute;bottom:60px;right:15px;background:#e74c3c;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;color:#fff;';
+                    delBtn.innerHTML = '🗑️';
+                    delBtn.onclick = () => deletePhoto(photo.album, photo.id);
+                    item.appendChild(delBtn);
+                }
+
+                // 点击打开灯箱
+                mediaWrapper.onclick = () => openLightbox(globalIndex);
+
+                // 覆盖层
+                if (photo.description || photo.date) {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'overlay';
+                    if (photo.description) {
+                        const caption = document.createElement('div');
+                        caption.className = 'caption';
+                        caption.textContent = photo.description;
+                        overlay.appendChild(caption);
+                    }
+                    if (photo.date) {
+                        const date = document.createElement('div');
+                        date.className = 'date';
+                        date.textContent = photo.date;
+                        overlay.appendChild(date);
+                    }
+                    item.appendChild(overlay);
+                }
+
+                fragment.appendChild(item);
+
+                // 观察懒加载
+                lazyObserver.observe(mediaWrapper);
+            });
+
+            gallery.appendChild(fragment);
+            displayedCount = end;
+
+            // 显示/隐藏加载更多按钮
+            if (displayedCount < filteredPhotos.length) {
+                loadMoreContainer.style.display = 'block';
+                loadMoreBtn.textContent = `加载更多 (${displayedCount}/${filteredPhotos.length})`;
+                loadMoreBtn.disabled = false;
+            } else {
+                loadMoreContainer.style.display = 'none';
+            }
+        }
+
+        // 加载更多
+        function loadMore() {
+            if (displayedCount >= filteredPhotos.length) return;
+            const loadMoreBtn = document.getElementById('loadMoreBtn');
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = '加载中...';
+            // 用 requestAnimationFrame 分批渲染，避免卡顿
+            requestAnimationFrame(() => {
+                renderBatch();
+            });
+        }
+
+        // 渲染相册选择器
+        function renderAlbumSelector() {
+            const selector = document.getElementById('albumSelector');
+            selector.innerHTML = `
+                <button class="album-btn ${currentAlbum === 'all' ? 'active' : ''}" data-album="all">
+                    全部 (${allPhotos.length})
+                </button>
+                ${allAlbums.map(album => `
+                    <button class="album-btn ${currentAlbum === album.name ? 'active' : ''}" data-album="${album.name}">
+                        ${album.name} (${album.photoCount})
+                    </button>
+                `).join('')}
+            `;
+
+            selector.querySelectorAll('.album-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    currentAlbum = e.target.dataset.album;
+                    renderAlbumSelector();
+                    resetAndRender();
+                });
+            });
+        }
+
+        // 切换管理模式
+        function toggleAdminMode() {
+            isAdminMode = !isAdminMode;
+            const btn = document.getElementById('modeToggle');
+            const panel = document.getElementById('adminPanel');
+
+            if (isAdminMode) {
+                btn.classList.add('active');
+                btn.innerHTML = '👁️ 展示';
+                panel.classList.add('active');
+                panel.classList.remove('collapsed');
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '🔧 管理';
+                panel.classList.remove('active');
+                panel.classList.remove('collapsed');
+            }
+
+            resetAndRender();
+        }
+
+        // 折叠/展开管理面板
+        function toggleAdminCollapse(event) {
+            event.stopPropagation();
+            const panel = document.getElementById('adminPanel');
+            panel.classList.toggle('collapsed');
+            const btn = panel.querySelector('.admin-collapse-btn');
+            if (panel.classList.contains('collapsed')) {
+                btn.innerHTML = '🔧';
+                btn.title = '展开管理面板';
+                // 点击折叠的面板展开它
+                panel.onclick = function(e) {
+                    if (panel.classList.contains('collapsed')) {
+                        e.stopPropagation();
+                        panel.classList.remove('collapsed');
+                        btn.innerHTML = '✕';
+                        btn.title = '收起管理面板';
+                        panel.onclick = null;
+                    }
+                };
+            } else {
+                btn.innerHTML = '✕';
+                btn.title = '收起管理面板';
+                panel.onclick = null;
+            }
+        }
+
+        // 创建相册
+        async function createAlbum() {
+            const name = document.getElementById('newAlbumName').value;
+            const description = document.getElementById('newAlbumDesc').value;
+
+            if (!name) { showToast('请输入相册名称'); return; }
+
+            try {
+                const res = await fetch('/api/admin/albums', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description })
+                });
+
+                if (res.ok) {
+                    showToast('相册创建成功', 'success');
+                    document.getElementById('newAlbumName').value = '';
+                    document.getElementById('newAlbumDesc').value = '';
+                    loadData();
+                } else {
+                    showToast('创建失败: ' + await res.text(), 'error');
+                }
+            } catch (error) {
+                showToast('创建失败: ' + error.message, 'error');
+            }
+        }
+
+        // 编辑照片
+        function editPhoto(album, photoId) {
+            const photo = allPhotos.find(p => p.id === photoId);
+            if (!photo) return;
+
+            editingPhoto = { album, photoId };
+            document.getElementById('editDescription').value = photo.description || '';
+            document.getElementById('editTags').value = (photo.tags || []).join(', ');
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        // 保存编辑
+        async function savePhotoEdit() {
+            if (!editingPhoto) return;
+
+            const description = document.getElementById('editDescription').value;
+            const tags = document.getElementById('editTags').value.split(',').map(t => t.trim()).filter(t => t);
+
+            try {
+                const res = await fetch(`/api/admin/photos/${encodeURIComponent(editingPhoto.album)}/${editingPhoto.photoId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description, tags })
+                });
+
+                if (res.ok) {
+                    showToast('保存成功', 'success');
+                    closeEditModal();
+                    loadData();
+                } else {
+                    showToast('保存失败', 'error');
+                }
+            } catch (error) {
+                showToast('保存失败: ' + error.message, 'error');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingPhoto = null;
+        }
+
+        // 删除照片
+        async function deletePhoto(album, photoId) {
+            const ok = await showConfirm('确定要删除这张照片吗？');
+            if (!ok) return;
+
+            try {
+                if (window.pywebview && window.pywebview.api) {
+                    const result = await window.pywebview.api.delete_photo(album, photoId);
+                    if (result.success) {
+                        showToast('删除成功', 'success');
+                        loadData();
+                    } else {
+                        showToast('删除失败: ' + result.error, 'error');
+                    }
+                }
+            } catch (error) {
+                showToast('删除失败: ' + error, 'error');
+            }
+        }
+
+        // 更新上传相册选择
+        function updateUploadAlbumSelect() {
+            const select = document.getElementById('uploadAlbum');
+            select.innerHTML = allAlbums.map(album => `<option value="${album.name}">${album.name}</option>`).join('');
+        }
+
+        // 应用名称到页面
+        function applyAppName(name) {
+            // 更新 header logo 名字部分（💕 固定不动）
+            document.getElementById('logoName').textContent = name;
+            // 更新页面标题
+            document.title = '💕 ' + name;
+            // 更新管理面板的输入框
+            document.getElementById('appNameInput').value = name;
+        }
+
+        // 改名
+        async function renameApp() {
+            const newName = document.getElementById('appNameInput').value.trim();
+            if (!newName) { showToast('名称不能为空'); return; }
+
+            try {
+                const res = await fetch('/api/admin/rename', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+
+                if (res.ok) {
+                    // 通过 pywebview JS API 自动重启
+                    if (window.pywebview && window.pywebview.api) {
+                        try {
+                            await window.pywebview.api.restart_app();
+                        } catch (e) {
+                            // 重启失败则手动刷新
+                            location.reload();
+                        }
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    showToast('改名失败', 'error');
+                }
+            } catch (error) {
+                showToast('改名失败: ' + error.message, 'error');
+            }
+        }
+
+        // 灯箱功能
+        function openLightbox(index) {
+            currentLightboxIndex = index;
+            const photo = filteredPhotos[index];
+            if (!photo) return;
+
+            const content = document.getElementById('lightboxContent');
+            let srcPath = photo.path;
+            if (!srcPath.startsWith('/')) srcPath = '/' + srcPath;
+            const encodedSrc = encodeURI(srcPath);
+
+            content.innerHTML = photo.type === 'video'
+                ? `<video src="${encodedSrc}" controls autoplay></video>`
+                : `<img src="${encodedSrc}" alt="">`;
+
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            // 关闭灯箱时清理视频
+            const content = document.getElementById('lightboxContent');
+            content.innerHTML = '';
+        }
+
+        function navigateLightbox(direction) {
+            currentLightboxIndex += direction;
+            if (currentLightboxIndex < 0) currentLightboxIndex = filteredPhotos.length - 1;
+            if (currentLightboxIndex >= filteredPhotos.length) currentLightboxIndex = 0;
+            openLightbox(currentLightboxIndex);
+        }
+
+        // 收藏功能
+        async function toggleFavorite(event, photoId, album) {
+            event.stopPropagation();
+
+            try {
+                const res = await fetch(`/api/admin/photos/${encodeURIComponent(album)}/${photoId}/favorite`, { method: 'POST' });
+                if (res.ok) {
+                    const index = favorites.indexOf(photoId);
+                    if (index > -1) favorites.splice(index, 1);
+                    else favorites.push(photoId);
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                    // 只更新按钮状态，不重新渲染整个画廊
+                    const btn = event.target;
+                    if (favorites.includes(photoId)) {
+                        btn.classList.add('favorited');
+                        btn.innerHTML = '❤️';
+                    } else {
+                        btn.classList.remove('favorited');
+                        btn.innerHTML = '🤍';
+                    }
+                }
+            } catch (error) {
+                console.error('收藏失败:', error);
+            }
+        }
+
+        // ===== 音乐播放器 =====
+        function setupMusicEvents() {
+            const audio = document.getElementById('audioPlayer');
+
+            // 播放进度更新
+            audio.addEventListener('timeupdate', () => {
+                if (audio.duration) {
+                    const pct = (audio.currentTime / audio.duration) * 100;
+                    document.getElementById('musicProgressFill').style.width = pct + '%';
+                    document.getElementById('musicCurrentTime').textContent = formatTime(audio.currentTime);
+                    document.getElementById('musicDuration').textContent = formatTime(audio.duration);
+                }
+            });
+
+            // 播放结束
+            audio.addEventListener('ended', () => {
+                if (musicLoopMode === 'single') {
+                    audio.currentTime = 0;
+                    audio.play();
+                } else if (musicLoopMode === 'sequence') {
+                    if (currentMusicIndex < musicFiles.length - 1) {
+                        currentMusicIndex++;
+                        playCurrentTrack();
+                    } else {
+                        // 放完最后一首回到第一首
+                        currentMusicIndex = 0;
+                        playCurrentTrack();
+                    }
+                } else if (musicLoopMode === 'shuffle') {
+                    currentMusicIndex = Math.floor(Math.random() * musicFiles.length);
+                    playCurrentTrack();
+                }
+            });
+
+            // 音量变化
+            audio.addEventListener('volumechange', () => {
+                document.getElementById('musicVolumeFill').style.width = (audio.volume * 100) + '%';
+                const icon = document.querySelector('.music-volume-icon');
+                if (audio.muted || audio.volume === 0) icon.textContent = '🔇';
+                else if (audio.volume < 0.5) icon.textContent = '🔉';
+                else icon.textContent = '🔊';
+            });
+
+            audio.volume = 0.8;
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function expandMusicPlayer() {
+            document.getElementById('musicPlayer').classList.add('expanded');
+            renderMusicPlaylist();
+        }
+
+        function collapseMusicPlayer() {
+            document.getElementById('musicPlayer').classList.remove('expanded');
+        }
+
+        function toggleMusic() {
+            const audio = document.getElementById('audioPlayer');
+            const btn = document.getElementById('musicPlayBtn');
+
+            if (musicFiles.length === 0) { showToast('请先在管理面板上传音乐'); return; }
+
+            if (audio.paused) {
+                if (!audio.src) {
+                    audio.src = getMusicPath(musicFiles[currentMusicIndex]);
+                }
+                audio.play();
+                isMusicPlaying = true;
+                btn.textContent = '⏸️';
+                document.getElementById('musicCollapsed').textContent = '⏸️';
+            } else {
+                audio.pause();
+                isMusicPlaying = false;
+                btn.textContent = '🎵';
+                document.getElementById('musicCollapsed').textContent = '🎵';
+            }
+            updateMusicInfo();
+        }
+
+        function playCurrentTrack() {
+            const audio = document.getElementById('audioPlayer');
+            if (musicFiles.length === 0) return;
+            audio.src = getMusicPath(musicFiles[currentMusicIndex]);
+            audio.play();
+            isMusicPlaying = true;
+            document.getElementById('musicPlayBtn').textContent = '⏸️';
+            document.getElementById('musicCollapsed').textContent = '⏸️';
+            updateMusicInfo();
+            renderMusicPlaylist();
+        }
+
+        function prevMusic() {
+            if (musicFiles.length === 0) return;
+            currentMusicIndex = (currentMusicIndex - 1 + musicFiles.length) % musicFiles.length;
+            playCurrentTrack();
+        }
+
+        function nextMusic() {
+            if (musicFiles.length === 0) return;
+            if (musicLoopMode === 'shuffle') {
+                currentMusicIndex = Math.floor(Math.random() * musicFiles.length);
+            } else {
+                currentMusicIndex = (currentMusicIndex + 1) % musicFiles.length;
+            }
+            playCurrentTrack();
+        }
+
+        function playMusicAt(index) {
+            currentMusicIndex = index;
+            playCurrentTrack();
+        }
+
+        function seekMusic(event) {
+            const audio = document.getElementById('audioPlayer');
+            if (!audio.duration) return;
+            const bar = document.getElementById('musicProgressBar');
+            const rect = bar.getBoundingClientRect();
+            const pct = (event.clientX - rect.left) / rect.width;
+            audio.currentTime = pct * audio.duration;
+        }
+
+        function setVolume(event) {
+            const audio = document.getElementById('audioPlayer');
+            const bar = document.getElementById('musicVolumeBar');
+            const rect = bar.getBoundingClientRect();
+            const pct = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            audio.volume = pct;
+            audio.muted = false;
+        }
+
+        function toggleMute() {
+            const audio = document.getElementById('audioPlayer');
+            audio.muted = !audio.muted;
+        }
+
+        function toggleMusicLoopMode() {
+            const modes = ['sequence', 'shuffle', 'single'];
+            const icons = ['🔁', '🔀', '🔂'];
+            const labels = ['顺序播放', '随机播放', '单曲循环'];
+            const idx = modes.indexOf(musicLoopMode);
+            const nextIdx = (idx + 1) % modes.length;
+            musicLoopMode = modes[nextIdx];
+            const btn = document.getElementById('loopModeBtn');
+            btn.textContent = icons[nextIdx];
+            btn.title = labels[nextIdx];
+            // 设置audio的loop属性
+            const audio = document.getElementById('audioPlayer');
+            audio.loop = (musicLoopMode === 'single');
+        }
+
+        function updateMusicInfo() {
+            if (musicFiles.length > 0) {
+                const music = musicFiles[currentMusicIndex];
+                document.getElementById('musicSongName').textContent = music.name || music.filename || '未知音乐';
+                document.getElementById('musicSongIndex').textContent =
+                    (currentMusicIndex + 1) + ' / ' + musicFiles.length;
+            }
+        }
+
+        function renderMusicPlaylist() {
+            const container = document.getElementById('musicPlaylist');
+            if (musicFiles.length === 0) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:13px;">暂无音乐<br><span style="font-size:11px;">请在管理面板上传</span></div>';
+                return;
+            }
+
+            container.innerHTML = musicFiles.map((music, i) => {
+                const name = music.name || music.filename || '未知';
+                const isActive = i === currentMusicIndex ? ' active' : '';
+                return `<div class="music-playlist-item${isActive}" onclick="playMusicAt(${i})">
+                    <span class="song-num">${i === currentMusicIndex && isMusicPlaying ? '▶' : (i + 1)}</span>
+                    <span class="song-name">${name}</span>
+                    <button class="song-delete" onclick="deleteMusic(event, ${i})" title="删除">✕</button>
+                </div>`;
+            }).join('');
+        }
+
+        function getMusicPath(music) {
+            let path = music.path || music.filename || '';
+            if (path && !path.startsWith('/')) path = '/' + path;
+            return encodeURI(path);
+        }
+
+        async function deleteMusic(event, index) {
+            event.stopPropagation();
+            const music = musicFiles[index];
+            const name = music.name || music.filename || '未知';
+
+            const ok = await showConfirm('确定删除 "' + name + '" 吗？');
+            if (!ok) return;
+
+            const wasPlayingCurrent = (index === currentMusicIndex && isMusicPlaying);
+
+            try {
+                if (window.pywebview && window.pywebview.api) {
+                    const musicId = music.id || music.filename;
+                    const result = await window.pywebview.api.delete_music(musicId);
+                    if (result.success) {
+                        musicFiles.splice(index, 1);
+                        allMusic = musicFiles;
+
+                        if (musicFiles.length === 0) {
+                            const audio = document.getElementById('audioPlayer');
+                            audio.pause();
+                            audio.src = '';
+                            isMusicPlaying = false;
+                            currentMusicIndex = 0;
+                            document.getElementById('musicPlayBtn').textContent = '🎵';
+                            document.getElementById('musicCollapsed').textContent = '🎵';
+                            document.getElementById('musicSongName').textContent = '暂无音乐';
+                            document.getElementById('musicSongIndex').textContent = '';
+                        } else if (wasPlayingCurrent) {
+                            if (currentMusicIndex >= musicFiles.length) {
+                                currentMusicIndex = 0;
+                            }
+                            playCurrentTrack();
+                        } else {
+                            if (index < currentMusicIndex) {
+                                currentMusicIndex--;
+                            } else if (currentMusicIndex >= musicFiles.length) {
+                                currentMusicIndex = 0;
+                            }
+                            updateMusicInfo();
+                        }
+                        renderMusicPlaylist();
+                    } else {
+                        showToast('删除失败: ' + result.error, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('删除音乐失败:', error);
+                showToast('删除失败: ' + error, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
