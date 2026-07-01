@@ -437,6 +437,119 @@
             background: #f0f0f0; color: #666;
         }
         .confirm-btn-cancel:hover { background: #e0e0e0; }
+
+        /* 相册按钮包装（含删除按钮） */
+        .album-btn-wrap { position: relative; display: inline-flex; align-items: center; }
+        .album-delete-btn {
+            display: none; position: absolute; top: -6px; right: -6px;
+            background: #e74c3c; color: #fff; border: none;
+            width: 20px; height: 20px; border-radius: 50%;
+            font-size: 13px; line-height: 1; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2); z-index: 2;
+        }
+        .album-btn-wrap:hover .album-delete-btn { display: block; }
+        .version-badge {
+            position: fixed; bottom: 10px; left: 10px;
+            background: rgba(255,255,255,0.7); color: #999;
+            padding: 4px 10px; border-radius: 10px; font-size: 12px; z-index: 999;
+        }
+
+        /* 收藏夹视图区 */
+        .collection-view { display: none; max-width: 1600px; margin: 0 auto 20px; text-align: center; }
+        .collection-view.active { display: block; }
+        .collection-view-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .collection-view-title { font-size: 18px; color: var(--primary-color); font-weight: bold; }
+        .collection-tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .collection-tab {
+            background: #fff; border: 2px solid #f0d0d8; color: #666;
+            padding: 8px 18px; border-radius: 20px; cursor: pointer;
+            transition: all 0.3s ease; font-size: 14px;
+        }
+        .collection-tab:hover { border-color: var(--primary-color); background: #fff5f7; }
+        .collection-tab.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #fff; border-color: transparent;
+        }
+        .collection-tab-manage {
+            background: rgba(255,255,255,0.7); border: 1px dashed #ddd; color: #999;
+            padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px;
+        }
+        .collection-tab-manage:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        /* 加入收藏弹窗 */
+        .collection-picker-wrap { position: fixed; z-index: 10002; }
+        .collection-picker {
+            background: #fff; border-radius: 12px; padding: 12px; min-width: 200px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+        }
+        .collection-picker-title { font-size: 12px; color: #999; margin-bottom: 8px; padding: 0 4px; }
+        .collection-picker-item {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; border-radius: 8px; cursor: pointer;
+            transition: background 0.2s; font-size: 14px; color: #333;
+        }
+        .collection-picker-item:hover { background: #fff0f5; }
+        .collection-picker-item .cp-check { font-size: 16px; width: 20px; text-align: center; }
+        .collection-picker-divider { height: 1px; background: #f0f0f0; margin: 6px 0; }
+        .collection-picker-new {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; border-radius: 8px; cursor: pointer;
+            font-size: 14px; color: var(--primary-color); font-weight: 500;
+        }
+        .collection-picker-new:hover { background: #fff0f5; }
+
+        /* 收藏夹管理弹窗 */
+        .manage-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); z-index: 10001;
+            justify-content: center; align-items: center;
+        }
+        .manage-modal.active { display: flex; }
+        .manage-content {
+            background: #fff; border-radius: 16px; padding: 25px 30px;
+            width: 90%; max-width: 450px; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .manage-content h3 { color: var(--primary-color); margin-bottom: 20px; }
+        .manage-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px; border-radius: 8px; margin-bottom: 8px; background: #fafafa;
+        }
+        .manage-item-name { flex: 1; font-size: 14px; color: #333; }
+        .manage-item-count { font-size: 12px; color: #999; }
+        .manage-item-btns { display: flex; gap: 5px; }
+        .manage-item-btns button {
+            background: none; border: none; cursor: pointer;
+            font-size: 16px; padding: 4px; opacity: 0.6;
+        }
+        .manage-item-btns button:hover { opacity: 1; }
+
+        /* 更新弹窗 */
+        .update-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); z-index: 10001;
+            justify-content: center; align-items: center;
+        }
+        .update-modal.active { display: flex; }
+        .update-content {
+            background: #fff; border-radius: 16px; padding: 25px 30px;
+            width: 90%; max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .update-content h3 { color: var(--primary-color); margin-bottom: 15px; }
+        .update-info { font-size: 14px; color: #555; margin-bottom: 15px; line-height: 1.6; }
+        .update-info .version-new { color: var(--primary-color); font-weight: bold; }
+        .update-info .version-old { color: #999; }
+        .update-desc { background: #fafafa; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5; }
+
+        /* 照片上的收藏标记 */
+        .photo-collection-badge {
+            position: absolute; bottom: 10px; left: 10px;
+            background: rgba(255,107,157,0.9); color: #fff;
+            padding: 3px 8px; border-radius: 10px;
+            font-size: 11px; max-width: 120px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -462,7 +575,7 @@
         <div class="logo"><span class="logo-heart">💕</span> <span class="logo-name" id="logoName">情侣相册</span></div>
         <nav>
             <button class="nav-btn active" data-view="all">全部照片</button>
-            <button class="nav-btn" data-view="favorites">❤️ 收藏</button>
+            <button class="nav-btn" data-view="favorites">❤️ 收藏夹</button>
             <button class="nav-btn" data-view="timeline">📅 时间线</button>
             <button class="mode-btn" id="modeToggle">🔧 管理</button>
         </nav>
@@ -471,6 +584,12 @@
     <!-- 主内容 -->
     <main>
         <div class="album-selector" id="albumSelector"></div>
+        <div class="collection-view" id="collectionView">
+            <div class="collection-view-header">
+                <div class="collection-tabs" id="collectionTabs"></div>
+                <button class="collection-tab-manage" onclick="openManageCollections()">⚙️ 管理</button>
+            </div>
+        </div>
         <div class="gallery-container" id="gallery"></div>
         <div class="load-more-container" id="loadMoreContainer" style="display:none;">
             <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">加载更多</button>
@@ -527,6 +646,12 @@
             <p style="font-size:13px;color:#888;margin-bottom:10px;">手动放入 storage 文件夹的音乐/图片/视频，点击同步后即可识别</p>
             <button class="btn" onclick="syncFiles()">开始扫描</button>
         </div>
+
+        <div class="admin-section">
+            <h4>📦 程序更新</h4>
+            <p style="font-size:13px;color:#888;margin-bottom:10px;">将更新包（.zip）放入 updates 文件夹，点击检查更新</p>
+            <button class="btn" onclick="checkForUpdate()">检查更新</button>
+        </div>
     </div>
 
     <!-- 灯箱 -->
@@ -554,6 +679,40 @@
                 <button class="btn btn-danger" onclick="closeEditModal()">取消</button>
             </div>
         </div>
+    </div>
+
+    <!-- 收藏夹管理弹窗 -->
+    <div class="manage-modal" id="manageModal">
+        <div class="manage-content">
+            <h3>⚙️ 管理收藏夹</h3>
+            <div id="manageList"></div>
+            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                <div class="form-group">
+                    <label>新建收藏夹</label>
+                    <input type="text" id="newCollectionName" placeholder="输入收藏夹名称">
+                </div>
+                <button class="btn" onclick="createCollectionFromManage()">创建</button>
+            </div>
+            <button class="btn" style="background:#999;margin-top:10px;" onclick="closeManageCollections()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 更新弹窗 -->
+    <div class="update-modal" id="updateModal">
+        <div class="update-content">
+            <h3>📦 发现新版本</h3>
+            <div class="update-info" id="updateInfo"></div>
+            <div class="update-desc" id="updateDesc" style="display:none;"></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" id="updateApplyBtn" onclick="applyUpdate()">立即更新</button>
+                <button class="btn" style="background:#999;" onclick="closeUpdateModal()">暂不更新</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加入收藏夹弹窗 -->
+    <div class="collection-picker-wrap" id="collectionPickerWrap" style="display:none;">
+        <div class="collection-picker" id="collectionPicker"></div>
     </div>
 
     <!-- 音乐播放器 -->
@@ -603,9 +762,10 @@
         let allPhotos = [];
         let allAlbums = [];
         let allMusic = [];
+        let allCollections = [];
         let currentAlbum = 'all';
         let currentView = 'all';
-        let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+        let currentCollection = null; // null = 所有收藏，否则是收藏夹 id
         let currentLightboxIndex = 0;
         let musicFiles = [];
         let currentMusicIndex = 0;
@@ -613,6 +773,8 @@
         let isMusicPlaying = false;
         let isAdminMode = false;
         let editingPhoto = null;
+        let pickerPhoto = null; // 当前正在选择收藏夹的照片
+        let currentVersion = '1.0.0';
 
         // ===== 性能优化：分页和懒加载 =====
         const PAGE_SIZE = 50;
@@ -778,6 +940,15 @@
                     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                     e.target.classList.add('active');
                     currentView = e.target.dataset.view;
+                    currentCollection = null;
+                    // 显示/隐藏收藏夹视图区
+                    const collectionView = document.getElementById('collectionView');
+                    if (currentView === 'favorites') {
+                        collectionView.classList.add('active');
+                        renderCollectionTabs();
+                    } else {
+                        collectionView.classList.remove('active');
+                    }
                     resetAndRender();
                 });
             });
@@ -899,22 +1070,34 @@
         // 加载数据
         async function loadData() {
             try {
-                const [albumsRes, photosRes, musicRes, statusRes] = await Promise.all([
+                const [albumsRes, photosRes, musicRes, statusRes, collectionsRes] = await Promise.all([
                     fetch('/api/albums'),
                     fetch('/api/photos'),
                     fetch('/api/music'),
-                    fetch('/api/status')
+                    fetch('/api/status'),
+                    fetch('/api/collections')
                 ]);
 
                 allAlbums = await albumsRes.json();
                 allPhotos = await photosRes.json();
                 allMusic = await musicRes.json();
+                allCollections = await collectionsRes.json();
                 const status = await statusRes.json();
 
                 // 应用名称
                 applyAppName(status.appName || '情侣相册');
+                currentVersion = status.version || '1.0.0';
+                document.getElementById('versionBadge').textContent = 'v' + currentVersion;
+
+                // 更新后显示更新内容（只在新版本首次加载时显示）
+                const lastSeen = sessionStorage.getItem('lastSeenVersion');
+                if (lastSeen && lastSeen !== currentVersion && status.lastUpdateDescription) {
+                    showToast('更新成功！' + status.lastUpdateDescription, 'success');
+                }
+                sessionStorage.setItem('lastSeenVersion', currentVersion);
 
                 renderAlbumSelector();
+                renderCollectionTabs();
                 resetAndRender();
                 updateUploadAlbumSelect();
 
@@ -944,7 +1127,24 @@
             }
 
             if (currentView === 'favorites') {
-                filteredPhotos = filteredPhotos.filter(p => favorites.includes(p.id));
+                if (currentCollection) {
+                    // 显示特定收藏夹的照片
+                    const col = allCollections.find(c => c.id === currentCollection);
+                    if (col) {
+                        filteredPhotos = filteredPhotos.filter(p =>
+                            col.photoIds.some(item => item.album === p.album && item.photoId === p.id)
+                        );
+                    } else {
+                        filteredPhotos = [];
+                    }
+                } else {
+                    // 显示所有收藏夹中的所有照片（去重）
+                    const favKeys = new Set();
+                    allCollections.forEach(col => {
+                        col.photoIds.forEach(item => favKeys.add(`${item.album}|||${item.photoId}`));
+                    });
+                    filteredPhotos = filteredPhotos.filter(p => favKeys.has(`${p.album}|||${p.id}`));
+                }
             } else if (currentView === 'timeline') {
                 filteredPhotos.sort((a, b) => new Date(b.date) - new Date(a.date));
             }
@@ -998,12 +1198,16 @@
 
                 item.appendChild(mediaWrapper);
 
-                // 收藏按钮
-                const favBtn = document.createElement('button');
-                favBtn.className = 'favorite-btn' + (favorites.includes(photo.id) ? ' favorited' : '');
-                favBtn.innerHTML = favorites.includes(photo.id) ? '❤️' : '🤍';
-                favBtn.onclick = (e) => toggleFavorite(e, photo.id, photo.album);
-                item.appendChild(favBtn);
+                // 加入收藏夹按钮
+                const photoCollections = photo.collections || [];
+                const collBtn = document.createElement('button');
+                collBtn.className = 'favorite-btn' + (photoCollections.length > 0 ? ' favorited' : '');
+                collBtn.innerHTML = photoCollections.length > 0 ? '❤️' : '➕';
+                collBtn.title = photoCollections.length > 0
+                    ? `已在 ${photoCollections.length} 个收藏夹中`
+                    : '加入收藏夹';
+                collBtn.onclick = (e) => onCollectionBtnClick(e, photo);
+                item.appendChild(collBtn);
 
                 // 管理模式按钮
                 if (isAdminMode) {
@@ -1081,9 +1285,12 @@
                     全部 (${allPhotos.length})
                 </button>
                 ${allAlbums.map(album => `
-                    <button class="album-btn ${currentAlbum === album.name ? 'active' : ''}" data-album="${album.name}">
-                        ${album.name} (${album.photoCount})
-                    </button>
+                    <span class="album-btn-wrap">
+                        <button class="album-btn ${currentAlbum === album.name ? 'active' : ''}" data-album="${album.name}">
+                            ${album.name} (${album.photoCount})
+                        </button>
+                        ${isAdminMode ? `<button class="album-delete-btn" data-album="${album.name}" title="删除相册">×</button>` : ''}
+                    </span>
                 `).join('')}
             `;
 
@@ -1092,6 +1299,29 @@
                     currentAlbum = e.target.dataset.album;
                     renderAlbumSelector();
                     resetAndRender();
+                });
+            });
+
+            // 删除相册按钮事件（管理模式）
+            selector.querySelectorAll('.album-delete-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const albumName = e.target.dataset.album;
+                    const ok = await showConfirm(`确定删除相册"${albumName}"吗？\n其中的所有照片/视频也会被删除！`);
+                    if (!ok) return;
+                    try {
+                        const res = await fetch(`/api/admin/albums/${encodeURIComponent(albumName)}`, { method: 'DELETE' });
+                        const result = await res.json();
+                        if (result.message) {
+                            showToast('相册已删除', 'success');
+                            if (currentAlbum === albumName) currentAlbum = 'all';
+                            loadData();
+                        } else {
+                            showToast('删除失败', 'error');
+                        }
+                    } catch (err) {
+                        showToast('删除失败：' + err, 'error');
+                    }
                 });
             });
         }
@@ -1312,30 +1542,289 @@
             openLightbox(currentLightboxIndex);
         }
 
-        // 收藏功能
-        async function toggleFavorite(event, photoId, album) {
-            event.stopPropagation();
+        // ===== 收藏夹功能 =====
 
-            try {
-                const res = await fetch(`/api/admin/photos/${encodeURIComponent(album)}/${photoId}/favorite`, { method: 'POST' });
-                if (res.ok) {
-                    const index = favorites.indexOf(photoId);
-                    if (index > -1) favorites.splice(index, 1);
-                    else favorites.push(photoId);
-                    localStorage.setItem('favorites', JSON.stringify(favorites));
-                    // 只更新按钮状态，不重新渲染整个画廊
-                    const btn = event.target;
-                    if (favorites.includes(photoId)) {
-                        btn.classList.add('favorited');
-                        btn.innerHTML = '❤️';
-                    } else {
-                        btn.classList.remove('favorited');
-                        btn.innerHTML = '🤍';
-                    }
-                }
-            } catch (error) {
-                console.error('收藏失败:', error);
+        // 渲染收藏夹标签页
+        function renderCollectionTabs() {
+            const tabs = document.getElementById('collectionTabs');
+            if (!tabs) return;
+            if (allCollections.length === 0) {
+                tabs.innerHTML = '<span style="color:#999;font-size:14px;">还没有收藏夹，点击右上角“管理”创建</span>';
+                return;
             }
+            const totalFav = new Set();
+            allCollections.forEach(col => col.photoIds.forEach(item => totalFav.add(`${item.album}|||${item.photoId}`)));
+            let html = `<button class="collection-tab ${!currentCollection ? 'active' : ''}" onclick="selectCollection(null)">全部收藏 (${totalFav.size})</button>`;
+            allCollections.forEach(col => {
+                const count = col.photoIds.length;
+                const isActive = currentCollection === col.id ? ' active' : '';
+                html += `<button class="collection-tab${isActive}" onclick="selectCollection('${col.id}')">${col.name} (${count})</button>`;
+            });
+            tabs.innerHTML = html;
+        }
+
+        function selectCollection(collectionId) {
+            currentCollection = collectionId;
+            renderCollectionTabs();
+            resetAndRender();
+        }
+
+        // 打开加入收藏夹弹窗
+        function openCollectionPicker(event, photo) {
+            event.stopPropagation();
+            event.preventDefault();
+            pickerPhoto = photo;
+            const wrap = document.getElementById('collectionPickerWrap');
+            const picker = document.getElementById('collectionPicker');
+            const btn = event.currentTarget;
+            const rect = btn.getBoundingClientRect();
+            wrap.style.display = 'block';
+            wrap.style.top = (rect.bottom + 5) + 'px';
+            wrap.style.left = Math.max(10, rect.right - 220) + 'px';
+            let html = '<div class="collection-picker-title">加入收藏夹</div>';
+            if (allCollections.length === 0) {
+                html += '<div style="padding:10px;color:#999;font-size:13px;text-align:center;">还没有收藏夹<br>点击下方新建一个</div>';
+            } else {
+                allCollections.forEach(col => {
+                    const inCol = (photo.collections || []).some(c => c.id === col.id);
+                    const check = inCol ? '❤️' : '🤍';
+                    html += `<div class="collection-picker-item" onclick="event.stopPropagation(); togglePhotoInCollection('${col.id}')"><span class="cp-check">${check}</span><span>${col.name}</span></div>`;
+                });
+            }
+            html += '<div class="collection-picker-divider"></div>';
+            html += '<div class="collection-picker-new" onclick="event.stopPropagation(); createCollectionForPhoto()">➕ 新建收藏夹</div>';
+            picker.innerHTML = html;
+        }
+
+        function closeCollectionPicker() {
+            document.getElementById('collectionPickerWrap').style.display = 'none';
+            pickerPhoto = null;
+        }
+
+        // 点击弹窗外部时关闭（用 capture 阶段，确保在所有其他 click 处理前执行）
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('collectionPickerWrap');
+            if (wrap.style.display === 'block' && !wrap.contains(e.target)) {
+                closeCollectionPicker();
+            }
+        }, true);
+
+        function createCollectionForPhoto() {
+            const name = prompt('输入新收藏夹名称：');
+            if (!name) return;
+            fetch('/api/admin/collections', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            }).then(res => res.json()).then(result => {
+                if (result.id) {
+                    showToast(`收藏夹"${name}"已创建，请重新点击 ➕ 把照片加入`, 'success');
+                    closeCollectionPicker();
+                    loadData();
+                } else {
+                    showToast('创建失败：' + (result.error || '未知错误'), 'error');
+                }
+            });
+        }
+
+        // 切换照片在某个收藏夹中的状态（从弹窗内点击触发）
+        async function togglePhotoInCollection(collectionId) {
+            if (!pickerPhoto) return;
+            const photo = pickerPhoto;
+            const inCol = (photo.collections || []).some(c => c.id === collectionId);
+            try {
+                if (inCol) {
+                    await fetch(`/api/admin/collections/${collectionId}/photos/${encodeURIComponent(photo.album)}/${photo.id}`, { method: 'DELETE' });
+                } else {
+                    await fetch(`/api/admin/collections/${collectionId}/photos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ album: photo.album, photoId: photo.id })
+                    });
+                }
+                await loadData();
+                closeCollectionPicker();
+            } catch (err) {
+                showToast('操作失败：' + err, 'error');
+            }
+        }
+
+        // 点击收藏按钮：已在收藏夹 → 全部移除；不在 → 打开选择弹窗
+        async function onCollectionBtnClick(event, photo) {
+            event.stopPropagation();
+            event.preventDefault();
+            const inAny = (photo.collections || []).length > 0;
+            if (inAny) {
+                const names = photo.collections.map(c => c.name).join('、');
+                const ok = await showConfirm(`这张照片已在以下收藏夹中：\n${names}\n\n确定要取消收藏吗？`);
+                if (!ok) return;
+                try {
+                    await fetch(`/api/admin/photos/${encodeURIComponent(photo.album)}/${photo.id}/unfavorite`, { method: 'POST' });
+                    showToast('已取消收藏', 'success');
+                    await loadData();
+                } catch (err) {
+                    showToast('操作失败：' + err, 'error');
+                }
+            } else {
+                openCollectionPicker(event, photo);
+            }
+        }
+
+        // 收藏夹管理弹窗
+        function openManageCollections() {
+            document.getElementById('manageModal').classList.add('active');
+            renderManageList();
+        }
+
+        function closeManageCollections() {
+            document.getElementById('manageModal').classList.remove('active');
+        }
+
+        function renderManageList() {
+            const list = document.getElementById('manageList');
+            if (allCollections.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">还没有收藏夹</div>';
+                return;
+            }
+            list.innerHTML = allCollections.map(col => `
+                <div class="manage-item">
+                    <span class="manage-item-name">${col.name}</span>
+                    <span class="manage-item-count">${col.photoIds.length} 个</span>
+                    <div class="manage-item-btns">
+                        <button data-id="${col.id}" data-name="${col.name.replace(/"/g, '&quot;')}" onclick="renameCollectionInManage(this.dataset.id, this.dataset.name)" title="重命名">✏️</button>
+                        <button data-id="${col.id}" data-name="${col.name.replace(/"/g, '&quot;')}" onclick="deleteCollectionInManage(this.dataset.id, this.dataset.name)" title="删除">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createCollectionFromManage() {
+            const input = document.getElementById('newCollectionName');
+            const name = input.value.trim();
+            if (!name) { showToast('请输入收藏夹名称'); return; }
+            try {
+                const res = await fetch('/api/admin/collections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const result = await res.json();
+                if (result.id) {
+                    showToast(`收藏夹"${name}"已创建`, 'success');
+                    input.value = '';
+                    await loadData();
+                    renderManageList();
+                    renderCollectionTabs();
+                } else {
+                    showToast('创建失败：' + (result.error || '未知错误'), 'error');
+                }
+            } catch (err) {
+                showToast('创建失败：' + err, 'error');
+            }
+        }
+
+        async function renameCollectionInManage(collectionId, oldName) {
+            const newName = prompt('重命名收藏夹：', oldName);
+            if (!newName || newName === oldName) return;
+            try {
+                const res = await fetch(`/api/admin/collections/${collectionId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('重命名成功', 'success');
+                    await loadData();
+                    renderManageList();
+                    renderCollectionTabs();
+                } else {
+                    showToast('重命名失败', 'error');
+                }
+            } catch (err) {
+                showToast('重命名失败：' + err, 'error');
+            }
+        }
+
+        async function deleteCollectionInManage(collectionId, name) {
+            const ok = await showConfirm(`确定删除收藏夹"${name}"吗？\n（收藏夹中的照片不会被删除）`);
+            if (!ok) return;
+            try {
+                const res = await fetch(`/api/admin/collections/${collectionId}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.success) {
+                    showToast('收藏夹已删除', 'success');
+                    await loadData();
+                    renderManageList();
+                    renderCollectionTabs();
+                    if (currentCollection === collectionId) {
+                        currentCollection = null;
+                    }
+                    resetAndRender();
+                } else {
+                    showToast('删除失败', 'error');
+                }
+            } catch (err) {
+                showToast('删除失败：' + err, 'error');
+            }
+        }
+
+        // ===== 程序更新 =====
+        async function checkForUpdate() {
+            showToast('正在检查更新...', 'info');
+            try {
+                const res = await fetch('/api/admin/update/check');
+                const data = await res.json();
+                if (data.error) {
+                    showToast('检查失败：' + data.error, 'error');
+                    return;
+                }
+                if (!data.hasUpdate) {
+                    showToast(`当前已是最新版本 (v${data.currentVersion})`, 'success');
+                    return;
+                }
+                const info = document.getElementById('updateInfo');
+                const desc = document.getElementById('updateDesc');
+                info.innerHTML = `<div>当前版本：<span class="version-old">v${data.currentVersion}</span></div><div>最新版本：<span class="version-new">v${data.newVersion}</span></div>`;
+                if (data.description) {
+                    desc.style.display = 'block';
+                    desc.textContent = data.description;
+                } else {
+                    desc.style.display = 'none';
+                }
+                document.getElementById('updateModal').classList.add('active');
+            } catch (err) {
+                showToast('检查失败：' + err, 'error');
+            }
+        }
+
+        async function applyUpdate() {
+            const btn = document.getElementById('updateApplyBtn');
+            btn.disabled = true;
+            btn.textContent = '正在更新...';
+            showToast('正在应用更新，请稍候...', 'info');
+            try {
+                const res = await fetch('/api/admin/update/apply', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || '更新成功，程序即将重启', 'success');
+                    btn.textContent = '更新成功';
+                } else {
+                    showToast('更新失败：' + data.error, 'error');
+                    btn.disabled = false;
+                    btn.textContent = '立即更新';
+                }
+            } catch (err) {
+                showToast('更新失败：' + err, 'error');
+                btn.disabled = false;
+                btn.textContent = '立即更新';
+            }
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').classList.remove('active');
+            document.getElementById('updateApplyBtn').disabled = false;
+            document.getElementById('updateApplyBtn').textContent = '立即更新';
         }
 
         // ===== 音乐播放器 =====
@@ -1578,5 +2067,6 @@
             }
         }
     </script>
+    <div class="version-badge" id="versionBadge">v1.1.0</div>
 </body>
 </html>
